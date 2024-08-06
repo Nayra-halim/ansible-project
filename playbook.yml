@@ -1,0 +1,32 @@
+- name:  permission
+  hosts: localhost
+  connection: local
+  become: yes
+  tasks:
+    - name: update cache
+      apt:
+        update_cache: true
+    - name: install apache
+      apt:
+        name: apache2
+        state: present
+    - name: start apache
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+          # - name: change port using sed
+      ansible.builtin.command:
+        cmd: sed -i 's/^Listen 80/Listen 8081/' "{{ apache_ports_conf }}"
+      notify: Restart Apache
+    - name: change Virtualport using sed
+      ansible.builtin.command:
+        cmd: sed -i 's/<VirtualHost \*:80>/<VirtualHost *:8081>/' "{{ apache_vhost_conf }}"
+      notify: Restart Apache
+  handlers:
+    - name: restart apache
+      ansible.builtin.service:
+        name: apache2
+        state: restarted
+
+
